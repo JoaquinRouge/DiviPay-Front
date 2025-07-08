@@ -1,4 +1,5 @@
 <script setup>
+
 import { ref } from 'vue'
 import logo from '../assets/images/logo.png'
 import { useRouter } from 'vue-router'
@@ -7,29 +8,35 @@ import axios from 'axios'
 
 const router = useRouter()
 
+const fullname = ref('')
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const loading = ref(false)
+const created = ref(false)
 
-async function login() {
+async function register() {
 
   loading.value = true
 
-  try {
-    const response = await axios.post('http://localhost:444/auth-service/api/auth/login', {
-      email: email.value,
-      password: password.value
+    try {
+        
+    const response = await axios.post('http://localhost:444/user-service/api/user/create', {
+        fullName: String(fullname.value),
+        email: String(email.value),
+        password: String(password.value)
     })
 
-    const token = response.data.jwt
-    localStorage.setItem('token', token)
+    created.value = true
 
-    router.push("/home")
+    setTimeout(() => {
+        router.push("/login")
+    }, 3000)
+
 
   } catch (error) {
-    console.error('Error during log in:', error.response?.data?.message || error.message)
-      errorMessage.value = 'Incorrect email or password'
+    console.error('Error during registration:', error.response?.data|| error.message)
+      errorMessage.value = error.response.data
 
     setTimeout(() => {
       errorMessage.value = ''
@@ -42,11 +49,18 @@ async function login() {
 </script>
 
 <template>
-  <div class="login-container">
-    <div class="login-card">
+  <div class="register-container">
+    <div class="register-card">
       <img :src="logo" alt="Logo" class="logo" />
-      <form @submit.prevent="login">
+      <form @submit.prevent="register">
         <div class="inputs">
+          <input
+            v-model="fullname"
+            type="text"
+            placeholder="Full name"
+            maxlength="30"
+            required
+          />
           <input
             v-model="email"
             type="email"
@@ -61,22 +75,16 @@ async function login() {
           />
         </div>
         <hr />
-        <div class="forg-pass">
-          <a href="#">¿You forgot your password?</a>
-        </div>
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <p v-if="created" class="created-message">Account created, redirecting to Log in</p>
         <button type="submit" :disabled="loading">
             <template v-if="loading">
                 <Spinner />
             </template>
             <template v-else>
-                Log in
+                Create account
             </template>
         </button>
-        <div class="new">
-          <p>¿New to DiviPay?</p>
-          <a href="/register">Join now</a>
-        </div>
       </form>
     </div>
   </div>
@@ -98,7 +106,7 @@ body {
     font-family: "Montserrat", sans-serif;
 }
 
-.error-message{
+.error-message,.created-message{
     font-family: "Montserrat", sans-serif;
     text-align: center;
     background-color: #E14434;
@@ -106,7 +114,12 @@ body {
     color: white;
 }
 
-.login-container {
+.created-message{
+    background-color: #72BF78;
+    
+}
+
+.register-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -114,7 +127,7 @@ body {
   padding: 1rem;
 }
 
-.login-card {
+.register-card {
     background-color: white;
   padding: 2rem;
   width: 100%;
@@ -143,23 +156,6 @@ input{
     border: 1px solid black;
 }
 
-.new{
-    display: flex;
-    gap:5px;
-    justify-content: center;
-    font-family: "Montserrat", sans-serif;
-}
-
-a{
-    color: #0a66c2;
-    text-decoration: none;
-    font-family: "Montserrat", sans-serif;
-}
-
-a:hover{
-    text-decoration: underline;
-}
-
 button{
     background-color: #0a66c2;
     color: white;
@@ -175,9 +171,5 @@ button{
 button:hover{
     background-color: #004182;
     transition: all 0.3s ease-out;
-}
-
-.forg-pass{
-    text-align: center;
 }
 </style>
