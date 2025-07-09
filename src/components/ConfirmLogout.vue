@@ -1,9 +1,19 @@
 <script setup>
+
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 defineProps({
   visible: Boolean
 })
 
-defineEmits(['confirm', 'cancel'])
+
+function logout() {
+  localStorage.removeItem("token")
+  router.push("/")
+}
+
 </script>
 
 <template>
@@ -12,7 +22,7 @@ defineEmits(['confirm', 'cancel'])
       <h3>Logout Confirmation</h3>
       <p>¿Are you sure you want to do logout?</p>
       <div class="buttons">
-        <button @click="$emit('confirm')">Confirm</button>
+        <button @click="logout">Confirm</button>
         <button @click="$emit('cancel')">Cancel</button>
       </div>
     </div>

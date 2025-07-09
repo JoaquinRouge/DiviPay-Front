@@ -1,51 +1,28 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import Spinner from './Spinner.vue'
 import GroupCard from './GroupCard.vue'
+import Spinner from './Spinner.vue'
 
-const token = localStorage.getItem('token')
-const loading = ref(true)
-const errorMessage = ref('')
-const groups = ref([])
-
-async function fetchGroups() {
-  loading.value = true
-
-  try {
-    const response = await axios.get('http://localhost:444/group-service/api/group/owner', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
-    groups.value = response.data
-    console.log('Grupos recibidos:', groups.value)
-
-  } catch (error) {
-    console.error('Error obtaining the groups:', error.response?.data || error.message)
-    errorMessage.value = error.response?.data || 'Unexpected error'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchGroups()
+defineProps({
+  groups: {
+    type: Array,
+    default: () => []
+  },
+  loading: Boolean
 })
 </script>
 
 <template>
-    <main>
-        <Spinner top-color="#0a66c2" v-if="loading"/>
-        <div class="groups">
-            <div>
-                <p v-if="!loading && groups.length == 0">¡You have 0 groups!</p>
-                <GroupCard v-for="grupo in groups" :key="grupo.id" :group="grupo"/>
-            </div>
-        </div>
-    </main>
+  <main>
+    <Spinner top-color="#0a66c2" v-if="loading" />
+    <div class="groups">
+      <div class="cards">
+        <p v-if="!loading && groups.length == null">¡You have 0 groups!</p>
+        <GroupCard v-for="group in groups" :key="group.id" :group="group" />
+      </div>
+    </div>
+  </main>
 </template>
+
 
 <style scoped>
 
@@ -58,6 +35,11 @@ onMounted(() => {
 
     p{
       font-family: 'Montserrat',sans-serif;
+    }
+
+    .cards{
+      display: flex;
+      gap: 50px;
     }
 
 </style>
