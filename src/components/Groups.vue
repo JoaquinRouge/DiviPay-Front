@@ -1,6 +1,9 @@
 <script setup>
 import GroupCard from './GroupCard.vue'
 import Spinner from './Spinner.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 defineProps({
   groups: {
@@ -9,6 +12,11 @@ defineProps({
   },
   loading: Boolean
 })
+
+function goToDetails(id) {
+  router.push(`/group/${id}`)
+}
+
 </script>
 
 <template>
@@ -17,7 +25,7 @@ defineProps({
     <div class="groups">
       <div class="cards">
         <p v-if="!loading && groups.length == null">¡You have 0 groups!</p>
-        <GroupCard v-for="group in groups" :key="group.id" :group="group" />
+        <GroupCard @click="goToDetails(group.id)" v-for="group in groups" :key="group.id" :group="group" />
       </div>
     </div>
   </main>
