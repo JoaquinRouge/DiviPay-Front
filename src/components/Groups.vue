@@ -14,7 +14,7 @@ defineProps({
 })
 
 function goToDetails(id) {
-  router.push(`/group/${id}`)
+  router.push(`/group/${id}/`)
 }
 
 </script>

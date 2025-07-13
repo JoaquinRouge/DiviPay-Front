@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import Spinner from './Spinner.vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 defineProps({
   visible: Boolean
@@ -34,6 +37,7 @@ async function createGroup() {
     )
 
     emit("created")
+    router.push("/home")
 
   } catch (error) {
     console.error('Error during registration:', error.response?.data || error.message)
