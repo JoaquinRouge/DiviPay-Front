@@ -175,6 +175,7 @@ onMounted(() => {
       <SpentCard 
         v-for="spent in spents"
         :spent="spent"
+        :usersInGroup="users"
         :key="spent.id"
         @spentDeleted="fetchSpents(); getTotal()" />
     </div>
@@ -196,81 +197,118 @@ onMounted(() => {
 
 
 <style scoped>
-    main{
-        margin: 50px;
-        margin-top: 110px;
-        font-family: "Montserrat", sans-serif;
-    }
+main {
+  margin: 50px;
+  margin-top: 110px;
+  font-family: "Montserrat", sans-serif;
+}
 
-    .info{
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      font-size: 30px;
-      justify-content: space-between;
-      gap: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-    }
+.info {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px 40px;
+  border-radius: 12px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
 
-    .info-group{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
+.info-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+}
 
-    .initials {
-      position: absolute;
-      top: -90px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      font-size: 50px;
-      border: 3px solid black;
-      color: white;
-      font-weight: 600;
-    }
+.initials {
+  position: absolute;
+  top: -90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #0a66c2;
+  color: white !important; /* Asegura que no se sobreescriba */
+  display: grid;
+  place-items: center;
+  font-size: 3.5rem !important; /* Más proporcional que 80px */
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 3px solid white;
+  z-index: 2;
+  user-select: none;
+}
 
-    .spents{
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-top: 20px;
-    }
+.initials p {
+  font-size: 2.7rem !important;
+  font-weight: 700 !important;
+  color: white !important;
+  line-height: 1;
+  margin: 0;
+  user-select: none;
+  text-align: center;
+}
 
-    .buttons{
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      gap: 10px;
-    }
 
-    button {
-      padding: 15px;
-      border: none;
-      border-radius: 30px;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
-      width: auto;
-      background-color: #0a66c2;
-      color: white;
-      transition: all 0.3s ease-out;
-    }
+.info-group > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 500px;
+}
 
-    button:hover{
-        background-color: #004182;
-        transition: all 0.3s ease-out;
-    }
+.info-group h1 {
+  font-size: 1.8rem;
+  color: #004182;
+  margin: 0;
+}
+
+.info-group p {
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
+}
+
+.info-group p:last-of-type {
+  font-size: 1.3rem;
+  color: #0a66c2;
+  font-weight: 600;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #0a66c2;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #004182;
+}
+
+.spents {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
 </style>
