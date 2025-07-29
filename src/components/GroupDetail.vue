@@ -4,6 +4,7 @@ import Header from './Header.vue'
 import Spinner from './Spinner.vue'
 import SpentCard from './SpentCard.vue'
 import ConfirmDeleteGroup from './ConfirmDeleteGroup.vue'
+import AddGroupMember from './AddGroupMember.vue'
 import CreateSpent from './CreateSpent.vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
@@ -24,6 +25,7 @@ const users = ref([])
 
 const showDeleteGroup = ref(false)
 const showCreateSpent = ref(false)
+const showAddFriends = ref(false)
 
 const loading = ref(false)
 const loadingSpents = ref(false)
@@ -39,6 +41,7 @@ async function fetchGroup() {
     group.value = response.data
   } catch (error) {
     console.error('Error obtaining the group:', error.response?.data || error.message)
+    router.push('/home')
   } finally {
     loading.value = false
   }
@@ -162,7 +165,7 @@ onMounted(() => {
             <p>{{ "$" + total }}</p>
           </div>
           <div class="buttons">
-            <button>Members</button>
+            <button @click="showAddFriends = true">Add</button>
             <button>Edit</button>
             <button @click="showDeleteGroup = true">Delete</button>
           </div>
@@ -189,6 +192,10 @@ onMounted(() => {
     <ConfirmDeleteGroup
       :visible="showDeleteGroup"
       @cancel="showDeleteGroup = false"
+      :groupId="groupId"/>
+    <AddGroupMember
+      :visible="showAddFriends"
+      @cancel="showAddFriends = false"
       :groupId="groupId"/>
       </div>
     </div>

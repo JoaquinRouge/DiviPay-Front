@@ -18,7 +18,7 @@ const loading = ref(true)
 async function fetchGroups() {
   loading.value = true
   try {
-    const response = await axios.get('http://localhost:444/group-service/api/group/owner', {
+    const response = await axios.get('http://localhost:444/group-service/api/group', {
       headers: {
         Authorization: `Bearer ${token}`
       }

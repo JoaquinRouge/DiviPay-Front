@@ -23,7 +23,9 @@ async function login() {
     })
 
     const token = response.data.jwt
+    const userId = response.data.userId
     localStorage.setItem('token', token)
+    localStorage.setItem('userId',userId)
 
     router.push("/home")
 
