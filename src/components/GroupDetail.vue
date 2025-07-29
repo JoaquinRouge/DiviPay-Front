@@ -6,6 +6,7 @@ import SpentCard from './SpentCard.vue'
 import ConfirmDeleteGroup from './ConfirmDeleteGroup.vue'
 import AddGroupMember from './AddGroupMember.vue'
 import CreateSpent from './CreateSpent.vue'
+import EditGroup from './editGroup.vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
@@ -26,6 +27,7 @@ const users = ref([])
 const showDeleteGroup = ref(false)
 const showCreateSpent = ref(false)
 const showAddFriends = ref(false)
+const showEditModal = ref(false)
 
 const loading = ref(false)
 const loadingSpents = ref(false)
@@ -44,6 +46,8 @@ async function fetchGroup() {
     router.push('/home')
   } finally {
     loading.value = false
+    showEditModal.value = false
+    showAddFriends.value = false
   }
 }
 
@@ -162,11 +166,12 @@ onMounted(() => {
           <div >
             <h1>{{ group.name }}</h1>
             <p>{{ group.description }}</p>
+            <p>{{ group.members.length }} members</p>
             <p>{{ "$" + total }}</p>
           </div>
           <div class="buttons">
             <button @click="showAddFriends = true">Add</button>
-            <button>Edit</button>
+            <button @click="showEditModal = true">Edit</button>
             <button @click="showDeleteGroup = true">Delete</button>
           </div>
       </div>
@@ -196,7 +201,17 @@ onMounted(() => {
     <AddGroupMember
       :visible="showAddFriends"
       @cancel="showAddFriends = false"
+      @added="fetchGroup"
       :groupId="groupId"/>
+    <EditGroup
+      :visible="showEditModal"
+      :groupId="groupId"
+      :name="group.name"
+      :description="group.description"
+      @updated="fetchGroup"
+      @cancel="showEditModal = false"
+    />
+
       </div>
     </div>
   </main>

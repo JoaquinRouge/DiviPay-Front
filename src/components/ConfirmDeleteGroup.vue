@@ -2,10 +2,13 @@
 
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { ref } from 'vue'
 
 const router = useRouter()
 
 const token = localStorage.getItem("token")
+
+const unauth = ref(false)
 
 const props = defineProps({
     visible: Boolean,
@@ -24,6 +27,13 @@ async function deleteGroup() {
     router.push("/home")
 
   } catch (error) {
+
+    unauth.value = true
+
+    setTimeout(() => {
+        unauth.value  = false
+    }, 4000)
+
     console.error("Error during deleteGroup: ", error.response?.data || error.message)
   }
 }
@@ -34,6 +44,7 @@ async function deleteGroup() {
   <div v-if="visible" class="modal-overlay">
     <div class="modal-content">
       <h3>Delete Group</h3>
+      <p v-if="unauth" class="unauth">You are not authorized to do this action</p>
       <p>¿Are you sure you want to delete this group?</p>
       <div class="buttons">
         <button @click="deleteGroup">Confirm</button>
@@ -56,6 +67,14 @@ async function deleteGroup() {
   justify-content: center;
   z-index: 1000;
   font-family: "Montserrat", sans-serif;
+}
+
+.unauth{
+  padding: 10px;
+  background-color: #E14434;
+  margin: 10px;
+  color: white;
+  border-radius: 15px;
 }
 
 .modal-content {

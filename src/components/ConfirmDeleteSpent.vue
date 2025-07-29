@@ -1,5 +1,6 @@
 <script setup>
 import axios from 'axios'
+import { ref } from 'vue'
 
 const token = localStorage.getItem("token")
 
@@ -7,6 +8,8 @@ const props = defineProps({
   visible: Boolean,
   spentId: Number
 })
+
+const unauth = ref(false)
 
 const emit = defineEmits(['cancel', 'deleted'])
 
@@ -20,6 +23,12 @@ async function deleteSpent() {
 
     emit('deleted') // Emitir evento al eliminar
   } catch (error) {
+
+    unauth.value = true
+
+    setTimeout(() => {
+        unauth.value  = false
+    }, 4000)
     console.error("Error during deleteSpent: ", error.response?.data || error.message)
   }
 }
@@ -29,6 +38,7 @@ async function deleteSpent() {
   <div v-if="visible" class="modal-overlay">
     <div class="modal-content">
       <h3>Delete Spent</h3>
+      <p v-if="unauth" class="unauth">You are not authorized to do this action</p>
       <p>¿Are you sure you want to delete this spent?</p>
       <div class="buttons">
         <button @click="deleteSpent">Confirm</button>
@@ -52,6 +62,14 @@ async function deleteSpent() {
   justify-content: center;
   z-index: 1000;
   font-family: "Montserrat", sans-serif;
+}
+
+.unauth{
+  padding: 10px;
+  background-color: #E14434;
+  margin: 10px;
+  color: white;
+  border-radius: 15px;
 }
 
 .modal-content {

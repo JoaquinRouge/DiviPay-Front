@@ -11,6 +11,9 @@ const userId = localStorage.getItem("userId")
 const friendsIds = ref([])
 const friends = ref([])
 const selected = ref([])
+const limit = ref(false)
+
+const emit = defineEmits(['cancel', 'added'])
 
 const props = defineProps({
   visible: Boolean,
@@ -67,13 +70,17 @@ async function confirmSelection() {
       }
     )
     selected.value = []
-    emit('cancel')
+    emit('added')
   } catch (error) {
     console.error("Error al agregar miembros: ", error.response?.data || error.message)
+    
+    limit.value = true
+
+    setTimeout(() => {
+        limit.value  = false
+    }, 4000)
   }
 }
-
-const emit = defineEmits(['cancel'])
 
 onMounted(async () => {
   await fetchFriendsIds()
@@ -85,6 +92,7 @@ onMounted(async () => {
   <div v-if="visible" class="modal-overlay">
     <div class="modal-content">
       <h3 style="margin-bottom: 20px;">Agregar amigos al grupo</h3>
+      <p class="limit" v-if="limit">Someone has reached the limit of groups</p>
       <div class="friends">
         <UserCard
           v-for="friend in friends"
@@ -115,6 +123,14 @@ onMounted(async () => {
   justify-content: center;
   z-index: 1000;
   font-family: "Montserrat", sans-serif;
+}
+
+.limit{
+  padding: 10px;
+  background-color: #E14434;
+  margin: 10px;
+  color: white;
+  border-radius: 15px;
 }
 
 .modal-content {
