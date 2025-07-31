@@ -7,6 +7,7 @@ import ConfirmDeleteGroup from './ConfirmDeleteGroup.vue'
 import AddGroupMember from './AddGroupMember.vue'
 import CreateSpent from './CreateSpent.vue'
 import EditGroup from './editGroup.vue'
+import LeaveGroup from './LeaveGroup.vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
@@ -23,11 +24,13 @@ const group = ref('')
 const spents = ref('')
 const total = ref('')
 const users = ref([])
+const owner = ref([])
 
 const showDeleteGroup = ref(false)
 const showCreateSpent = ref(false)
 const showAddFriends = ref(false)
 const showEditModal = ref(false)
+const showLeaveGroup = ref(false)
 
 const loading = ref(false)
 const loadingSpents = ref(false)
@@ -48,6 +51,7 @@ async function fetchGroup() {
     loading.value = false
     showEditModal.value = false
     showAddFriends.value = false
+    fetchUsers()
   }
 }
 
@@ -107,6 +111,35 @@ async function getTotal() {
   }
 }
 
+async function getOwner() {
+  try {
+    const ownerResponse = await axios.get(`http://localhost:444/group-service/api/group/${groupId}/owner`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    const ownerId = ownerResponse.data; // este sí es el número
+    const idList = [ownerId];
+
+    const response = await axios.post(
+      `http://localhost:444/user-service/api/user/list`,
+      idList,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }
+    )
+
+    owner.value = response.data[0];
+  } catch (error) {
+    console.error('Error during get owner:', error.response?.data || error.message)
+  }
+}
+
+
 function getDeterministicGradient(key) {
   const gradients = [
     "linear-gradient(135deg, #0a66c2, #004182)",
@@ -150,6 +183,7 @@ onMounted(() => {
   fetchSpents()
   fetchUsers()
   getTotal()
+  getOwner()
 })
 
 </script>
@@ -166,12 +200,17 @@ onMounted(() => {
           <div >
             <h1>{{ group.name }}</h1>
             <p>{{ group.description }}</p>
-            <p>{{ group.members.length }} members</p>
+            <p v-if="group.members">{{ group.members.length }} members</p>
+            <div class="owner">
+              <p v-if="owner">Owner: </p>
+              <p class="member-tag">{{ owner.fullName }}</p>
+            </div>
             <p>{{ "$" + total }}</p>
           </div>
           <div class="buttons">
             <button @click="showAddFriends = true">Add</button>
             <button @click="showEditModal = true">Edit</button>
+            <button @click="showLeaveGroup = true">Leave</button>
             <button @click="showDeleteGroup = true">Delete</button>
           </div>
       </div>
@@ -211,7 +250,11 @@ onMounted(() => {
       @updated="fetchGroup"
       @cancel="showEditModal = false"
     />
-
+    <LeaveGroup
+      :visible="showLeaveGroup"
+      :groupId="groupId"
+      @cancel="showLeaveGroup = false"
+    />
       </div>
     </div>
   </main>
@@ -223,6 +266,20 @@ main {
   margin: 50px;
   margin-top: 110px;
   font-family: "Montserrat", sans-serif;
+}
+
+.owner{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.member-tag {
+  background-color: #0a66c2 !important;
+  color: white !important;
+  padding: 12px 12px !important;
+  border-radius: 20px !important;
+  font-size: 0.85rem !important;
 }
 
 .info {
@@ -299,7 +356,7 @@ main {
 }
 
 .info-group p:last-of-type {
-  font-size: 1.3rem;
+  font-size: 2rem;
   color: #0a66c2;
   font-weight: 600;
 }
