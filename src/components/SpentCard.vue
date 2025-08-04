@@ -44,20 +44,7 @@ const emit = defineEmits(['spentDeleted'])
         </div>
       </div>
     </div>
-    <svg
-      @click="showDeleteSpent = true"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 448 512"
-    >
-      <path
-        d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 
-          32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 
-          6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 
-          6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 
-          25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 
-          47.9-45L416 128z"
-      />
-    </svg>
+    <button @click="showDeleteSpent = true">Delete</button>
 
     <ConfirmDeleteSpent
       :visible="showDeleteSpent"
@@ -83,6 +70,23 @@ const emit = defineEmits(['spentDeleted'])
   background-color: #fff;
   transition: all 0.3s ease;
   gap: 20px;
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #0a66c2;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #004182;
 }
 
 .spent-data {

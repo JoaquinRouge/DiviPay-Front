@@ -1,10 +1,8 @@
 <script setup>
-import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import UserCard from './UserCard.vue'
 
-const router = useRouter()
 
 const token = localStorage.getItem("token")
 const userId = localStorage.getItem("userId")
@@ -86,6 +84,14 @@ onMounted(async () => {
   await fetchFriendsIds()
   await fetchFriends()
 })
+
+watch(() => props.visible, async (newVal) => {
+  if (newVal) {
+    await fetchFriendsIds()
+    await fetchFriends()
+  }
+})
+
 </script>
 
 <template>
@@ -94,6 +100,7 @@ onMounted(async () => {
       <h3 style="margin-bottom: 20px;">Agregar amigos al grupo</h3>
       <p class="limit" v-if="limit">Someone has reached the limit of groups</p>
       <div class="friends">
+        <p v-if="friends.length == 0">You must have friends to add people</p>
         <UserCard
           v-for="friend in friends"
           :key="friend.id"
