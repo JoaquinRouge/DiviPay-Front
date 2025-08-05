@@ -3,13 +3,12 @@ import axios from 'axios'
 import { onMounted, ref, watch } from 'vue'
 import UserCard from './UserCard.vue'
 
-
 const token = localStorage.getItem("token")
-const userId = localStorage.getItem("userId")
 const friendsIds = ref([])
 const friends = ref([])
 const selected = ref([])
 const limit = ref(false)
+const error = ref('')
 
 const emit = defineEmits(['cancel', 'added'])
 
@@ -28,7 +27,7 @@ function toggleSelection(id) {
 
 async function fetchFriendsIds() {
   try {
-    const response = await axios.get(`http://localhost:444/friends-service/api/friends/${userId}`, {
+    const response = await axios.get(`http://localhost:444/friends-service/api/friends`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -68,21 +67,42 @@ async function confirmSelection() {
       }
     )
     selected.value = []
+    limit.value = false
+    error.value = ''
     emit('added')
-  } catch (error) {
-    console.error("Error al agregar miembros: ", error.response?.data || error.message)
-    
-    limit.value = true
+  } catch (err) {
+    // Asegurar que error sea string
+    let msg = ''
+    if (err.response && err.response.data) {
+      if (typeof err.response.data === 'string') {
+        msg = err.response.data
+      } else if (typeof err.response.data.message === 'string') {
+        msg = err.response.data.message
+      } else {
+        msg = JSON.stringify(err.response.data)
+      }
+    } else {
+      msg = err.message || 'Unknown error'
+    }
 
+    console.error("Error al agregar miembros: ", msg)
+
+    limit.value = true
+    error.value = msg
+
+    // Mostrar mensaje 4 segundos
     setTimeout(() => {
-        limit.value  = false
+      limit.value = false
+      error.value = ''
     }, 4000)
   }
 }
 
 onMounted(async () => {
-  await fetchFriendsIds()
-  await fetchFriends()
+  if (props.visible) {
+    await fetchFriendsIds()
+    await fetchFriends()
+  }
 })
 
 watch(() => props.visible, async (newVal) => {
@@ -98,9 +118,9 @@ watch(() => props.visible, async (newVal) => {
   <div v-if="visible" class="modal-overlay">
     <div class="modal-content">
       <h3 style="margin-bottom: 20px;">Agregar amigos al grupo</h3>
-      <p class="limit" v-if="limit">Someone has reached the limit of groups</p>
+      <p class="limit" v-if="limit">{{ error }}</p>
       <div class="friends">
-        <p v-if="friends.length == 0">You must have friends to add people</p>
+        <p v-if="friends.length === 0">You must have friends to add people</p>
         <UserCard
           v-for="friend in friends"
           :key="friend.id"
@@ -132,7 +152,7 @@ watch(() => props.visible, async (newVal) => {
   font-family: "Montserrat", sans-serif;
 }
 
-.limit{
+.limit {
   padding: 10px;
   background-color: #E14434;
   margin: 10px;

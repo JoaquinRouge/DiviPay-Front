@@ -275,7 +275,7 @@ main {
 }
 
 .member-tag {
-  background-color: #0a66c2 !important;
+  background-color: #004182 !important;
   color: white !important;
   padding: 12px 12px !important;
   border-radius: 20px !important;
@@ -373,15 +373,15 @@ button {
   border-radius: 25px;
   font-weight: 600;
   font-family: 'Montserrat', sans-serif;
-  background-color: #0a66c2;
   color: white;
   cursor: pointer;
   font-size: 0.95rem;
   transition: all 0.3s ease;
+  background-color: #004182;
 }
 
 button:hover {
-  background-color: #004182;
+  background-color: #0a66c2;
 }
 
 .spents {

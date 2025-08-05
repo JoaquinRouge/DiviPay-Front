@@ -78,15 +78,15 @@ button {
   border-radius: 25px;
   font-weight: 600;
   font-family: 'Montserrat', sans-serif;
-  background-color: #0a66c2;
   color: white;
   cursor: pointer;
   font-size: 0.95rem;
+  background-color: #004182;
   transition: all 0.3s ease;
 }
 
 button:hover {
-  background-color: #004182;
+  background-color: #0a66c2;
 }
 
 .spent-data {
@@ -137,7 +137,7 @@ button:hover {
 }
 
 .member-tag {
-  background-color: #0a66c2;
+  background-color: #004182;
   color: white;
   padding: 12px 12px;
   border-radius: 20px;

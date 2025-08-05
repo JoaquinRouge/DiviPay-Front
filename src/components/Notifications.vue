@@ -93,7 +93,7 @@ watch(showNotifications, (val) => {
       <ul>
         <li v-for="req in requests" :key="req.id" class="request-item">
           <div class="info">
-            <strong>From:</strong> {{ userNames[req.requesterId] || 'Loading...' }}<br />
+            <strong>From:</strong> {{ userNames[req.requesterId] || "Loading..." }}<br />
             <small>{{ new Date(req.createdAt).toLocaleString() }}</small>
           </div>
           <div class="actions">
