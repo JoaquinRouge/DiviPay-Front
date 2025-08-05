@@ -2,12 +2,14 @@
   <div
     class="user-card"
     :class="{ selected: isSelected }"
-    @click="$emit('toggle', user.id)"
+    @click="$emit('toggle', user?.id)"
   >
-    <div class="avatar">{{ user.fullName.charAt(0).toUpperCase() }}</div>
+    <div class="avatar">
+      {{ user?.fullName?.charAt(0)?.toUpperCase() || '?' }}
+    </div>
     <div class="info">
-      <p class="name">{{ user.fullName }}</p>
-      <p class="email">{{ user.email }}</p>
+      <p class="name">{{ user?.fullName || 'Unknown' }}</p>
+      <p class="email">{{ user?.email || 'No email' }}</p>
     </div>
   </div>
 </template>
@@ -18,6 +20,7 @@ defineProps({
   isSelected: Boolean
 })
 </script>
+
 
 <style scoped>
 .user-card {

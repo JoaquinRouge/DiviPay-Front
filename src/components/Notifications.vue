@@ -113,10 +113,11 @@ watch(showNotifications, (val) => {
 }
 
 .bell-icon {
-  width: 50px;
+  width: 40px;
   cursor: pointer;
   fill: black;
   transition: fill 0.3s;
+  margin-top: 5px;
 }
 
 .actions{

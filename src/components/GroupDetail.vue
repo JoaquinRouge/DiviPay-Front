@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed} from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import Header from './Header.vue'
 import Spinner from './Spinner.vue'
 import SpentCard from './SpentCard.vue'
@@ -14,8 +14,6 @@ import { useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
-
-const gradient = computed(() => getDeterministicGradient(groupId));
 
 const groupId = route.params.id
 const token = localStorage.getItem("token")
@@ -34,6 +32,8 @@ const showLeaveGroup = ref(false)
 
 const loading = ref(false)
 const loadingSpents = ref(false)
+
+const gradient = computed(() => getDeterministicGradient(groupId));
 
 async function fetchGroup() {
   loading.value = true
@@ -90,13 +90,11 @@ async function fetchUsers() {
         }
       }
     )
-      console.log(response.data)
-      users.value = response.data
+    users.value = response.data
   } catch (error) {
     console.error('Error obtaining users:', error.response?.data || error.message)
   }
 }
-
 
 async function getTotal() {
   try {
@@ -139,7 +137,6 @@ async function getOwner() {
   }
 }
 
-
 function getDeterministicGradient(key) {
   const gradients = [
     "linear-gradient(135deg, #0a66c2, #004182)",
@@ -170,13 +167,80 @@ function getDeterministicGradient(key) {
 
 function getInitials(phrase) {
   if (!phrase) return "";
-  
+
   const words = phrase.trim().split(/\s+/);
+
   const firstTwo = words.slice(0, 2);
-  
+
   return firstTwo.map(word => word.charAt(0).toUpperCase()).join('');
 }
 
+// Computed property para calcular y simplificar las deudas
+const debts = computed(() => {
+  if (!spents.value || !users.value || spents.value.length === 0 || users.value.length === 0) return []
+
+  const deudaMap = {} // { fromId: { toId: amount } }
+
+  spents.value.forEach(({ amount, userId: payerId, members }) => {
+    if (!members || members.length === 0) return
+
+    const splitAmount = amount / members.length
+
+    members.forEach(memberId => {
+      if (memberId === payerId) return
+
+      if (!deudaMap[memberId]) deudaMap[memberId] = {}
+      if (!deudaMap[memberId][payerId]) deudaMap[memberId][payerId] = 0
+
+      deudaMap[memberId][payerId] += splitAmount
+    })
+  })
+
+  // Simplificar deudas mutuas
+  const simplified = {}
+
+  for (const fromId in deudaMap) {
+    for (const toId in deudaMap[fromId]) {
+      const amount = deudaMap[fromId][toId]
+
+      if (simplified[toId]?.[fromId]) {
+        if (simplified[toId][fromId] > amount) {
+          simplified[toId][fromId] -= amount
+        } else if (simplified[toId][fromId] < amount) {
+          const diff = amount - simplified[toId][fromId]
+          delete simplified[toId][fromId]
+          if (!simplified[fromId]) simplified[fromId] = {}
+          simplified[fromId][toId] = (simplified[fromId][toId] || 0) + diff
+        } else {
+          delete simplified[toId][fromId]
+        }
+      } else {
+        if (!simplified[fromId]) simplified[fromId] = {}
+        simplified[fromId][toId] = (simplified[fromId][toId] || 0) + amount
+      }
+    }
+  }
+
+  // Convertir a array plano para mostrar
+  const result = []
+
+  for (const fromId in simplified) {
+    for (const toId in simplified[fromId]) {
+      result.push({
+        from: parseInt(fromId),
+        to: parseInt(toId),
+        amount: simplified[fromId][toId]
+      })
+    }
+  }
+
+  return result
+})
+
+function getUserName(id) {
+  const user = users.value.find(u => u.id === id)
+  return user ? user.fullName : `User ${id}`
+}
 
 onMounted(() => {
   fetchGroup()
@@ -185,7 +249,6 @@ onMounted(() => {
   getTotal()
   getOwner()
 })
-
 </script>
 
 <template>
@@ -197,69 +260,87 @@ onMounted(() => {
         <div class="initials" :style="{ background: gradient }">
           <p>{{ getInitials(group.name) }}</p>
         </div>
-          <div >
-            <h1>{{ group.name }}</h1>
-            <p>{{ group.description }}</p>
-            <p v-if="group.members">{{ group.members.length }} members</p>
-            <div class="owner">
-              <p v-if="owner">Owner: </p>
-              <p class="member-tag">{{ owner.fullName }}</p>
-            </div>
-            <p>{{ "$" + total }}</p>
+        <div>
+          <h1>{{ group.name }}</h1>
+          <p>{{ group.description }}</p>
+          <p>Creation: {{ new Date(group.createdAt).toLocaleDateString('es-AR') }}</p>
+          <p v-if="group.members">{{ group.members.length }} members</p>
+          <div class="owner">
+            <p v-if="owner">Owner: </p>
+            <p class="member-tag">{{ owner.fullName }}</p>
           </div>
-          <div class="buttons">
-            <button @click="showAddFriends = true">Add</button>
-            <button @click="showEditModal = true">Edit</button>
-            <button @click="showLeaveGroup = true">Leave</button>
-            <button @click="showDeleteGroup = true">Delete</button>
-          </div>
+          <p>{{ "$" + total }}</p>
+        </div>
+        <div class="buttons">
+          <button @click="showAddFriends = true">Add</button>
+          <button @click="showEditModal = true">Edit</button>
+          <button @click="showLeaveGroup = true">Leave</button>
+          <button @click="showDeleteGroup = true">Delete</button>
+        </div>
       </div>
-      <div>
-        
-    <Spinner top-color="#0a66c2" v-if="loadingSpents"/>
-    <button @click="showCreateSpent = true">Create Spent</button>
-    <div class="spents">
-      <SpentCard 
-        v-for="spent in spents"
-        :spent="spent"
-        :usersInGroup="users"
-        :key="spent.id"
-        @spentDeleted="fetchSpents(); getTotal()" />
-    </div>
-    <CreateSpent
-      :visible="showCreateSpent"
-      :users="users"
-      :groupId="groupId"
-      @cancel="showCreateSpent = false"
-      @created="fetchSpents(); getTotal()"
-    />
-    <ConfirmDeleteGroup
-      :visible="showDeleteGroup"
-      @cancel="showDeleteGroup = false"
-      :groupId="groupId"/>
-    <AddGroupMember
-      :visible="showAddFriends"
-      @cancel="showAddFriends = false"
-      @added="fetchGroup"
-      :groupId="groupId"/>
-    <EditGroup
-      :visible="showEditModal"
-      :groupId="groupId"
-      :name="group.name"
-      :description="group.description"
-      @updated="fetchGroup"
-      @cancel="showEditModal = false"
-    />
-    <LeaveGroup
-      :visible="showLeaveGroup"
-      :groupId="groupId"
-      @cancel="showLeaveGroup = false"
-    />
+
+      <!-- Aquí mostramos las deudas -->
+      <div class="debts-summary" v-if="debts.length">
+        <h2>Debt Summary</h2>
+        <ul>
+          <li v-for="(debt, i) in debts" :key="i">
+            {{ getUserName(debt.from) }} owes <strong>${{ debt.amount.toFixed(2) }}</strong> to {{ getUserName(debt.to) }}
+          </li>
+        </ul>
       </div>
+      <div v-else class="debts-summary no-debts">
+        <p>No debts to display.</p>
+      </div>
+
+      <Spinner top-color="#0a66c2" v-if="loadingSpents"/>
+      <button @click="showCreateSpent = true">Create Spent</button>
+      <div class="spents">
+        <SpentCard 
+          v-for="spent in spents"
+          :spent="spent"
+          :usersInGroup="users"
+          :key="spent.id"
+          @spentDeleted="fetchSpents(); getTotal()" />
+      </div>
+
+      <CreateSpent
+        :visible="showCreateSpent"
+        :users="users"
+        :groupId="groupId"
+        @cancel="showCreateSpent = false"
+        @created="fetchSpents(); getTotal()"
+      />
+
+      <ConfirmDeleteGroup
+        :visible="showDeleteGroup"
+        @cancel="showDeleteGroup = false"
+        :groupId="groupId"
+      />
+
+      <AddGroupMember
+        :visible="showAddFriends"
+        @cancel="showAddFriends = false"
+        @added="fetchGroup"
+        :groupId="groupId"
+      />
+
+      <EditGroup
+        :visible="showEditModal"
+        :groupId="groupId"
+        :name="group.name"
+        :description="group.description"
+        @updated="fetchGroup"
+        @cancel="showEditModal = false"
+      />
+
+      <LeaveGroup
+        :visible="showLeaveGroup"
+        :groupId="groupId"
+        @cancel="showLeaveGroup = false"
+      />
     </div>
   </main>
 </template>
-
 
 <style scoped>
 main {
@@ -335,7 +416,6 @@ main {
   text-align: center;
 }
 
-
 .info-group > div:nth-child(2) {
   display: flex;
   flex-direction: column;
@@ -389,5 +469,50 @@ button:hover {
   flex-direction: column;
   gap: 20px;
   margin-top: 20px;
+}
+
+/* Estilos para el resumen de deudas */
+.debts-summary {
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #f0f5fb;
+  border: 1px solid #c5d7f5;
+  max-width: 600px;
+  font-family: 'Montserrat', sans-serif;
+  color: #004182;
+}
+
+.debts-summary h2 {
+  margin-bottom: 15px;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.debts-summary ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.debts-summary li {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background-color: #d9e6fb;
+  box-shadow: 0 2px 5px rgb(0 65 130 / 0.15);
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.debts-summary li strong {
+  color: #0a66c2;
+}
+
+.no-debts {
+  font-style: italic;
+  color: #666;
+  font-weight: 500;
+  max-width: 600px;
+  margin-top: 30px;
 }
 </style>

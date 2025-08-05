@@ -5,13 +5,14 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const token = localStorage.getItem("token")
+const userId = Number(localStorage.getItem("userId")) // 👈 user actual
 
 const emit = defineEmits(['cancel', 'created'])
 
 const props = defineProps({
   visible: Boolean,
   users: Array,
-  groupId:Number
+  groupId: Number
 })
 
 const name = ref('')
@@ -19,27 +20,36 @@ const description = ref(0)
 const selectedUserIds = ref([])
 
 watch(() => props.users, (newUsers) => {
-  selectedUserIds.value = newUsers.map(user => user.id)
+  // Preseleccionar todos excepto el usuario actual
+  selectedUserIds.value = newUsers
+    .filter(user => user.id !== userId)
+    .map(user => user.id)
 }, { immediate: true })
 
 const loading = ref(false)
 const errorMessage = ref('')
 
-function toggleUser(userId) {
-  if (selectedUserIds.value.includes(userId)) {
-    selectedUserIds.value = selectedUserIds.value.filter(id => id !== userId)
+function toggleUser(userIdToToggle) {
+  if (selectedUserIds.value.includes(userIdToToggle)) {
+    selectedUserIds.value = selectedUserIds.value.filter(id => id !== userIdToToggle)
   } else {
-    selectedUserIds.value.push(userId)
+    selectedUserIds.value.push(userIdToToggle)
   }
 }
 
 async function createSpent() {
+  const members = [...selectedUserIds.value]
+
+  // Asegurarse de incluir el user actual
+  if (!members.includes(userId)) {
+    members.push(userId)
+  }
 
   const payload = {
     description: name.value,
     amount: description.value,
     groupId: props.groupId,
-    members: selectedUserIds.value
+    members
   }
 
   try {
@@ -72,7 +82,6 @@ async function createSpent() {
     loading.value = false
   }
 }
-
 </script>
 
 <template>
@@ -96,12 +105,11 @@ async function createSpent() {
             required
           />
 
-          <!-- Selector visual de usuarios -->
           <div class="user-selector">
-            <label>Seleccionar usuarios</label>
+            <label>Select users</label>
             <div class="user-list">
               <div
-                v-for="user in props.users"
+                v-for="user in props.users.filter(u => u.id !== userId)"
                 :key="user.id"
                 class="user-item"
                 :class="{ selected: selectedUserIds.includes(user.id) }"
@@ -134,6 +142,7 @@ async function createSpent() {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 h3 {

@@ -86,30 +86,34 @@ function debounce(fn, delay) {
   }
 }
 
-const performSearch = debounce(async (email) => {
-  if (!email || email.length < 3) {
+const performSearch = debounce(async (emailInput) => {
+  if (!emailInput || emailInput.length < 3) {
     searchResult.value = null
     searchError.value = null
     return
   }
+
   searching.value = true
   searchError.value = null
   searchResult.value = null
   friendRequestSuccess.value = false
   friendRequestError.value = null
+
   try {
-    const res = await axios.get(`http://localhost:444/user-service/api/user/email/${encodeURIComponent(email)}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    const res = await axios.get(
+      `http://localhost:444/user-service/api/user/email/${encodeURIComponent(emailInput.trim())}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
     searchResult.value = res.data
   } catch (e) {
-    // Muestro el error claro que venga del backend
     searchError.value = e.response?.data?.message || e.response?.data || e.message || 'Error searching user'
     console.error(e.response?.data || e.message)
   } finally {
     searching.value = false
   }
 }, 500)
+
+
 
 watch(searchEmail, (val) => {
   performSearch(val)
@@ -172,7 +176,7 @@ async function sendFriendRequest(targetId) {
           <h2>My Profile</h2>
           <p><strong>Name:</strong> {{ user.fullName }}</p>
           <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Member since:</strong> {{ new Date(user.createdAt).toLocaleDateString() }}</p>
+          <p><strong>Member since:</strong> {{ new Date(user.createdAt).toLocaleDateString('es-AR') }}</p>
           <button class="logout" @click="showLogoutModal = true">Log Out</button>
         </div>
 
@@ -317,12 +321,10 @@ async function sendFriendRequest(targetId) {
   color: white;
   transition: background-color 0.3s ease-out, box-shadow 0.3s ease;
   margin-top: 1.5rem;
-  box-shadow: 0 5px 15px #0a66c2bb;
 }
 
 .logout:hover {
   background-color: #004182;
-  box-shadow: 0 8px 20px #004182cc;
 }
 
 .main-content {
